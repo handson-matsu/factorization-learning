@@ -118,5 +118,17 @@ function results() { $('quiz-screen').classList.add('hidden'); $('result-screen'
 if (typeof document !== 'undefined') {
   $('start-button').addEventListener('click', start); $('retry-button').addEventListener('click', start); $('next-button').addEventListener('click', next);
 }
+// Record one visit per page load without waiting for the response or retrying.
+try {
+  fetch('https://script.google.com/macros/s/AKfycbxssCIHsD-N97SHxNC_GN0ihYeC0qy-lb-EY0KmSs6Gnztaph1sITMerLVEnNWOGkYc/exec?app=factorization-learning', {
+    method: 'GET',
+    mode: 'no-cors',
+    cache: 'no-store',
+    credentials: 'omit',
+    keepalive: true,
+  }).catch(() => {});
+} catch {
+  // Access logging must never interrupt the app.
+}
 // Node のテストからも使用できるように公開する。
 if (typeof module !== 'undefined') module.exports = { expand, expandForm, makeQuestion, createRound, candidateFactors, isFullyFactored, polynomialGcd, formKey };
