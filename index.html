@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>因数分解トレーニング</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=Noto+Sans+JP:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section id="start-screen" class="screen start-screen">
+        <div class="eyebrow">FACTORIZATION LAB</div>
+        <div class="hero-mark" aria-hidden="true">×</div>
+        <h1>展開して、<br /><em>たしかめる。</em></h1>
+        <p class="lead">因数分解は、答えを展開して元の式に戻るか確かめよう。<br />10問で、足す数と掛ける数の感覚を身につけます。</p>
+        <div class="route" aria-label="10問の学習ステップ">
+          <span>基本</span><i></i><span>符号</span><i></i><span>一次式</span><i></i><span>発展</span>
+        </div>
+        <button id="start-button" class="primary-button">10問に挑戦する <span>→</span></button>
+        <p class="hint">毎回ちがう問題が出題されます</p>
+      </section>
+
+      <section id="quiz-screen" class="screen quiz-screen hidden" aria-live="polite">
+        <header class="quiz-header">
+          <div><span class="eyebrow">QUESTION</span><strong id="question-count">01 / 10</strong></div>
+          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+          <div class="score-pill"><span>正解</span><b id="live-score">0</b></div>
+        </header>
+        <div class="question-intro"><span id="level-label">ウォームアップ</span><p>次の式を因数分解すると？</p></div>
+        <div id="expression" class="expression"></div>
+        <p class="reverse-note">選んだ式を展開して、元の式に戻るか考えてみよう。</p>
+        <div id="choices" class="choices"></div>
+        <section id="feedback" class="feedback hidden">
+          <div id="feedback-icon" class="feedback-icon"></div>
+          <div><h2 id="feedback-title"></h2><p id="feedback-text"></p></div>
+          <button id="next-button" class="next-button">次の問題へ <span>→</span></button>
+        </section>
+      </section>
+
+      <section id="result-screen" class="screen result-screen hidden">
+        <div class="eyebrow">YOUR RESULT</div>
+        <div class="result-ring"><span id="result-score">0</span><small>/ 10</small></div>
+        <h1 id="result-heading">おつかれさまでした！</h1>
+        <p id="result-message" class="lead"></p>
+        <div class="result-stats"><div><span>正答率</span><b id="accuracy">0%</b></div><div><span>チャレンジ</span><b>10問</b></div></div>
+        <button id="retry-button" class="primary-button">もう一度挑戦する <span>↻</span></button>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
