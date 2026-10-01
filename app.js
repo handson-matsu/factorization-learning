@@ -6,7 +6,9 @@ const slots = [
   ['ステップアップ', () => monic(4, 10, true)], ['一次式', linear],
   ['発展', () => nonMonic(false)], ['発展', () => nonMonic(false)], ['チャレンジ', () => nonMonic(true)]
 ];
-let questions = [], current = 0, score = 0, answered = false;
+const TIME_LIMITS = [30_000, 60_000, 90_000, 120_000, null];
+let questions = [], current = 0, score = 0, answered = false, answeredCount = 0;
+let selectedLimitMs = 30_000, timerFrame = null, timerStartedAt = 0, remainingMs = selectedLimitMs, timeExpired = false;
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (items) => items[rnd(0, items.length - 1)];
 const shuffle = (items) => [...items].sort(() => Math.random() - .5);
@@ -95,6 +97,36 @@ function isFullyFactored(question) {
     && question.factors.every(([a,b]) => gcd(a,b) === 1);
 }
 function createRound() { return slots.map(([level, generator]) => ({...generator(), level})); }
+const displaySeconds = (milliseconds) => (Math.max(0, Math.ceil(milliseconds / 100) / 10)).toFixed(1);
+const limitLabel = (milliseconds) => milliseconds === null ? '無制限' : `${milliseconds / 1000}秒`;
+const remainingFor = (limit, startedAt, now) => limit === null ? null : Math.max(0, limit - (now - startedAt));
+function renderTimer() {
+  const unlimited = selectedLimitMs === null;
+  $('timer-value').textContent = unlimited ? '無制限' : displaySeconds(remainingMs);
+  $('timer-unit').classList.toggle('hidden', unlimited);
+  $('timer').classList.toggle('unlimited', unlimited);
+  $('timer').classList.toggle('urgent', !unlimited && remainingMs <= 5_000);
+}
+function stopTimer() {
+  if (timerFrame !== null && typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(timerFrame);
+  timerFrame = null;
+}
+function tickTimer(now) {
+  remainingMs = remainingFor(selectedLimitMs, timerStartedAt, now);
+  renderTimer();
+  if (remainingMs === 0) { finishTimeUp(); return; }
+  timerFrame = requestAnimationFrame(tickTimer);
+}
+function startTimer() {
+  stopTimer(); timeExpired = false; remainingMs = selectedLimitMs; renderTimer();
+  if (selectedLimitMs === null) return;
+  timerStartedAt = performance.now(); timerFrame = requestAnimationFrame(tickTimer);
+}
+function finishTimeUp() {
+  stopTimer(); timeExpired = true; remainingMs = 0; renderTimer();
+  document.querySelectorAll('.choice').forEach(el => { el.disabled = true; });
+  results(true);
+}
 function showQuestion() {
   answered = false; const q = questions[current];
   $('question-count').textContent = `${String(current + 1).padStart(2,'0')} / 10`;
@@ -105,18 +137,27 @@ function showQuestion() {
   document.querySelectorAll('.choice').forEach(button => button.addEventListener('click', () => answer(button, q)));
 }
 function answer(button, q) {
-  if (answered) return; answered = true; const correct = button.dataset.answer === q.answer;
+  if (answered || timeExpired) return; answered = true; answeredCount++; const correct = button.dataset.answer === q.answer;
   document.querySelectorAll('.choice').forEach(el => { el.disabled=true; if (el.dataset.answer === q.answer) el.classList.add('correct'); });
   if (!correct) button.classList.add('wrong'); else score++;
   $('live-score').textContent = score; const feedback = $('feedback'); feedback.className = `feedback ${correct ? 'correct-feedback' : 'wrong-feedback'}`;
   $('feedback-icon').textContent = correct ? '✓' : '!'; $('feedback-title').textContent = correct ? '正解！ 展開して確かめられました。' : 'おしい！ 正解を展開して確かめよう。'; $('feedback-text').textContent = q.explanation;
   $('next-button').textContent = current === 9 ? '結果を見る →' : '次の問題へ →';
 }
-function start() { questions=createRound(); current=0; score=0; $('start-screen').classList.add('hidden'); $('result-screen').classList.add('hidden'); $('quiz-screen').classList.remove('hidden'); showQuestion(); }
-function next() { if (!answered) return; current++; if (current < 10) showQuestion(); else results(); }
-function results() { $('quiz-screen').classList.add('hidden'); $('result-screen').classList.remove('hidden'); $('result-score').textContent=score; const percent=score*10; $('accuracy').textContent=`${percent}%`; $('result-heading').textContent = score >= 9 ? 'すばらしい！' : score >= 6 ? 'よくできました！' : '10問、完走！'; $('result-message').textContent = score >= 9 ? '因数形を展開して確かめる力が身についています。' : '答えを選んだら、一度展開して元の式に戻るか考えてみよう。'; }
+function start() { questions=createRound(); current=0; score=0; answeredCount=0; $('start-screen').classList.add('hidden'); $('result-screen').classList.add('hidden'); $('quiz-screen').classList.remove('hidden'); showQuestion(); startTimer(); }
+function next() { if (!answered || timeExpired) return; current++; if (current < 10) showQuestion(); else results(false); }
+function results(timedOut = false) {
+  stopTimer(); $('quiz-screen').classList.add('hidden'); $('result-screen').classList.remove('hidden'); $('result-score').textContent=score;
+  const percent = answeredCount ? Math.round(score / answeredCount * 100) : 0;
+  $('accuracy').textContent=`${percent}%`; $('answered-count').textContent=`${answeredCount} / 10`; $('result-time').textContent = timedOut ? `${limitLabel(selectedLimitMs)}（終了）` : limitLabel(selectedLimitMs);
+  $('result-heading').textContent = timedOut ? '時間切れ！' : score >= 9 ? 'すばらしい！' : score >= 6 ? 'よくできました！' : '10問、完走！';
+  $('result-message').textContent = timedOut ? `${limitLabel(selectedLimitMs)}の挑戦、おつかれさまでした。もう一度挑戦して記録を伸ばそう。` : score >= 9 ? '因数形を展開して確かめる力が身についています。' : '答えを選んだら、一度展開して元の式に戻るか考えてみよう。';
+}
 if (typeof document !== 'undefined') {
   $('start-button').addEventListener('click', start); $('retry-button').addEventListener('click', start); $('next-button').addEventListener('click', next);
+  document.querySelectorAll('input[name="time-limit"]').forEach(input => input.addEventListener('change', () => {
+    selectedLimitMs = input.value === 'unlimited' ? null : Number(input.value);
+  }));
 }
 // Record one visit per page load without waiting for the response or retrying.
 try {
@@ -131,4 +172,4 @@ try {
   // Access logging must never interrupt the app.
 }
 // Node のテストからも使用できるように公開する。
-if (typeof module !== 'undefined') module.exports = { expand, expandForm, makeQuestion, createRound, candidateFactors, isFullyFactored, polynomialGcd, formKey };
+if (typeof module !== 'undefined') module.exports = { expand, expandForm, makeQuestion, createRound, candidateFactors, isFullyFactored, polynomialGcd, formKey, TIME_LIMITS, displaySeconds, limitLabel, remainingFor };

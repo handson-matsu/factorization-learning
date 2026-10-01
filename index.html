@@ -19,6 +19,16 @@
         <div class="route" aria-label="10問の学習ステップ">
           <span>基本</span><i></i><span>符号</span><i></i><span>一次式</span><i></i><span>発展</span>
         </div>
+        <fieldset class="time-selector">
+          <legend>制限時間を選ぶ</legend>
+          <div class="time-options">
+            <label><input type="radio" name="time-limit" value="30000" checked /><span>30秒</span></label>
+            <label><input type="radio" name="time-limit" value="60000" /><span>60秒</span></label>
+            <label><input type="radio" name="time-limit" value="90000" /><span>90秒</span></label>
+            <label><input type="radio" name="time-limit" value="120000" /><span>120秒</span></label>
+            <label><input type="radio" name="time-limit" value="unlimited" /><span>無制限</span></label>
+          </div>
+        </fieldset>
         <button id="start-button" class="primary-button">10問に挑戦する <span>→</span></button>
         <p class="hint">毎回ちがう問題が出題されます</p>
       </section>
@@ -28,6 +38,7 @@
           <div><span class="eyebrow">QUESTION</span><strong id="question-count">01 / 10</strong></div>
           <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
           <div class="score-pill"><span>正解</span><b id="live-score">0</b></div>
+          <div id="timer" class="timer" aria-label="残り時間"><span>TIME</span><b id="timer-value">30.0</b><small id="timer-unit">秒</small></div>
         </header>
         <div class="question-intro"><span id="level-label">ウォームアップ</span><p>次の式を因数分解すると？</p></div>
         <div id="expression" class="expression"></div>
@@ -45,7 +56,7 @@
         <div class="result-ring"><span id="result-score">0</span><small>/ 10</small></div>
         <h1 id="result-heading">おつかれさまでした！</h1>
         <p id="result-message" class="lead"></p>
-        <div class="result-stats"><div><span>正答率</span><b id="accuracy">0%</b></div><div><span>チャレンジ</span><b>10問</b></div></div>
+        <div class="result-stats"><div><span>正答率</span><b id="accuracy">0%</b></div><div><span>解答数</span><b id="answered-count">0 / 10</b></div><div><span>制限時間</span><b id="result-time">30.0秒</b></div></div>
         <button id="retry-button" class="primary-button">もう一度挑戦する <span>↻</span></button>
       </section>
     </main>

@@ -1,4 +1,11 @@
-const { createRound, expandForm, makeQuestion, candidateFactors, formKey, isFullyFactored, polynomialGcd } = require('./app.js');
+const { createRound, expandForm, makeQuestion, candidateFactors, formKey, isFullyFactored, polynomialGcd, TIME_LIMITS, displaySeconds, limitLabel, remainingFor } = require('./app.js');
+
+const expectedLimits = [30_000, 60_000, 90_000, 120_000, null];
+if (JSON.stringify(TIME_LIMITS) !== JSON.stringify(expectedLimits)) throw new Error('制限時間の選択肢が不正');
+TIME_LIMITS.filter(limit => limit !== null).forEach(limit => {
+  if (displaySeconds(limit) !== `${limit / 1000}.0` || displaySeconds(limit - 100) !== `${limit / 1000 - .1}` || displaySeconds(remainingFor(limit, 0, limit)) !== '0.0') throw new Error(`${limit}msのタイマー表示が不正`);
+});
+if (remainingFor(null, 0, 9_999_999) !== null || limitLabel(null) !== '無制限' || limitLabel(120_000) !== '120秒') throw new Error('無制限タイマーが不正');
 
 // 仕様で重視する「共通因数を先にくくる」代表例。
 const examples = [
